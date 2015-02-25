@@ -90,8 +90,38 @@ describe HAProxy::Treetop::ConfigParser do
     @result.elements[4].class.should == HAProxy::Treetop::BackendSection
   end
 
+  it 'can parse userlist sections' do
+    parse_single_pool
+
+    # The two userlists are functionally the same, so we should store them in a similiar manner.
+    ['L1','L2'].each do |userlist_name|
+      l = @result.userlist(userlist_name)
+
+      # Only difference between the two objects should be the grouping method.
+      # This will be interpreted at parse time, and used at render time.
+      case userlist_name
+        when 'L1'
+          l.grouping.should == HAProxy::Userlist::GROUP
+        when 'L2'
+          l.grouping.should == HAProxy::Userlist::USER
+      end
+
+      l.group('G1').users.keys.should == ['tiger','scott']
+      l.group('G2').users.keys.should == ['xdb','scott']
+
+      l.user('tiger').password_type.should == 'md5'
+      l.user('tiger').password.should == '$6$k6y3o.eP$JlKBx(...)xHSwRv6J.C0/D7cV91'
+
+      l.user('scott').password_type.should == 'insecure-password'
+      l.user('scott').password.should == 'elgato'
+
+      l.user('tiger').groups.keys.should == ['G1']
+      l.user('scott').groups.keys.should == ['G1','G2']
+    end
+
+  end
+  
   it 'can parse valid units of time'
-  it 'can parse userlist sections'
   it 'can parse strings with escaped spaces'
   it 'can parse files with escaped quotes'
   it 'can parse keywords with hyphens'
