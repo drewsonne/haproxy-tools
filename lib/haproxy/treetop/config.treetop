@@ -4,7 +4,7 @@ module HAProxy::Treetop
 
   grammar Config
     rule configuration
-      (comment_line / blank_line / global_section / defaults_section / userlist_section / listen_section / frontend_section / backend_section)* <ConfigurationFile>
+      (comment_line / blank_line / userlist_section / global_section / defaults_section / listen_section / frontend_section / backend_section)* <ConfigurationFile>
     end
 
     rule global_section
@@ -16,7 +16,7 @@ module HAProxy::Treetop
     end
 
     rule userlist_section
-      userlist_header config_block <UserlistSection>
+      userlist_header userlist_block <UserlistSection>
     end
 
     rule listen_section
@@ -36,7 +36,7 @@ module HAProxy::Treetop
     end
 
     rule userlist_header
-      whitespace "userlist" whitespace proxy_name comment_text? line_break <UseristHeader>
+      whitespace "userlist" whitespace proxy_name comment_text? line_break <UserlistHeader>
     end
 
     rule defaults_header
@@ -53,6 +53,18 @@ module HAProxy::Treetop
 
     rule backend_header
       whitespace "backend" whitespace proxy_name whitespace value? comment_text? line_break <BackendHeader>
+    end
+
+    rule userlist_block
+        (user_line / group_line / comment_line / blank_line )* <UserlistBlock>
+    end
+
+    rule user_line
+        whitespace "user" whitespace keyword whitespace password_type whitespace password (whitespace "groups" usergroup_listing)? line_break <UserLine>
+    end
+
+    rule group_line
+        whitespace "group" whitespace keyword whitespace (whitespace "groups" usergroup_listing)? line_break <GroupLine>
     end
 
     rule config_block

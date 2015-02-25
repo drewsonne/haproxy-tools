@@ -210,6 +210,10 @@ module HAProxy
       def backends
         self.elements.select {|e| e.class == BackendSection}
       end
+
+      def userlists
+        self.elements.select {|e| e.class == UserlistSection}
+      end
     end
 
     def print_node(e, depth, options = nil)
