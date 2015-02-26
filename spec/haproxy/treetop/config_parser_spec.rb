@@ -95,7 +95,11 @@ describe HAProxy::Treetop::ConfigParser do
 
     # The two userlists are functionally the same, so we should store them in a similiar manner.
     ['L1','L2'].each do |userlist_name|
-      l = @result.userlist(userlist_name)
+      l = @result.userlists.detect { |userlist|
+        userlist.name.content == userlist_name
+      }
+
+      l.should be # Make sure we have a userlist.
 
       # Only difference between the two objects should be the grouping method.
       # This will be interpreted at parse time, and used at render time.
