@@ -131,6 +131,7 @@ module HAProxy
       end
     end
 
+
     class GlobalHeader < ::Treetop::Runtime::SyntaxNode
       include StrippedTextContent
     end
@@ -158,6 +159,15 @@ module HAProxy
       include ServiceAddressContainer
     end
 
+    class UserlistBlock < ::Treetop::Runtime::SyntaxNode
+    end
+
+    class UserLine < ::Treetop::Runtime::SyntaxNode
+    end
+
+    class GroupLine < ::Treetop::Runtime::SyntaxNode
+    end
+
     class ConfigBlock < ::Treetop::Runtime::SyntaxNode
     end
 
@@ -169,9 +179,9 @@ module HAProxy
       include ConfigBlockContainer
     end
 
-    class UserlistSection < ::Treetop::Runtime::SyntaxNode
-      include ConfigBlockContainer
-    end
+    # class UserlistSection < ::Treetop::Runtime::SyntaxNode
+    #   include ConfigBlockContainer
+    # end
 
     class FrontendSection < ::Treetop::Runtime::SyntaxNode
       include ConfigBlockContainer
@@ -185,6 +195,12 @@ module HAProxy
     class BackendSection < ::Treetop::Runtime::SyntaxNode
       include ConfigBlockContainer
       include ServerContainer
+    end
+
+    class UserlistSection < ::Treetop::Runtime::SyntaxNode
+      def name
+        self.userlist_header.proxy_name
+      end
     end
 
     class ConfigurationFile < ::Treetop::Runtime::SyntaxNode

@@ -36,7 +36,7 @@ module HAProxy::Treetop
     end
 
     rule userlist_header
-      whitespace "userlist" whitespace proxy_name comment_text? line_break <UserlistHeader>
+      whitespace "userlist" whitespace proxy_name whitespace comment_text? line_break <UserlistHeader>
     end
 
     rule defaults_header
@@ -60,11 +60,27 @@ module HAProxy::Treetop
     end
 
     rule user_line
-        whitespace "user" whitespace keyword whitespace password_type whitespace password (whitespace "groups" usergroup_listing)? line_break <UserLine>
+        whitespace "user" whitespace role_keyword whitespace password_type whitespace password group_addendum? line_break <UserLine>
     end
 
     rule group_line
-        whitespace "group" whitespace keyword whitespace (whitespace "groups" usergroup_listing)? line_break <GroupLine>
+        whitespace "group" whitespace role_keyword user_addendum? line_break <GroupLine>
+    end
+
+    rule user_addendum
+       whitespace "users" whitespace usergroup_listing
+    end
+
+    rule group_addendum
+       whitespace "groups" whitespace usergroup_listing
+    end
+
+    rule role_keyword
+        [a-zA-Z0-9]+ <Char>
+    end
+
+    rule usergroup_listing
+        [a-zA-Z0-9\,]+ <Char>
     end
 
     rule config_block
@@ -80,7 +96,7 @@ module HAProxy::Treetop
     end
 
     rule config_line
-      whitespace !("defaults" / "global" / "listen" / "frontend" / "backend") keyword whitespace value? comment_text? line_break <ConfigLine>
+      whitespace !("userlist" / "defaults" / "global" / "listen" / "frontend" / "backend") keyword whitespace value? comment_text? line_break <ConfigLine>
     end
 
     rule comment_line
@@ -145,6 +161,14 @@ module HAProxy::Treetop
 
     rule whitespace
       [ \t]* <Whitespace>
+    end
+
+    rule password_type
+        ("password" / "insecure-password")
+    end
+
+    rule password
+        [^\s]+ <Char>
     end
 
 # Valid Global Keywords (1.4)
