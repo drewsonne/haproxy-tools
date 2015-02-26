@@ -93,7 +93,7 @@ describe HAProxy::Treetop::ConfigParser do
   it 'can parse userlist sections' do
     parse_single_pool
 
-    # The two userlists are functionally the same, so we should store them in a similiar manner.
+    # The two userlists are functionally the same, so we should store them in a similar manner.
     ['L1','L2'].each do |userlist_name|
       l = @result.userlists.detect { |userlist|
         userlist.name.content == userlist_name
