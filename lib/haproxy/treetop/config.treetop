@@ -56,7 +56,7 @@ module HAProxy::Treetop
     end
 
     rule userlist_block
-        (user_line / group_line / comment_line / blank_line )* <UserlistBlock>
+        (user_line / group_line / comment_line / blank_line)* <UserlistBlock>
     end
 
     rule user_line
