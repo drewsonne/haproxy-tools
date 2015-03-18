@@ -160,12 +160,45 @@ module HAProxy
     end
 
     class UserlistBlock < ::Treetop::Runtime::SyntaxNode
+
+      def users
+        self.elements.select {|e| e.class == UserLine}
+      end
+
+      def groups
+        self.elements.select {|e| e.class == GroupLine}
+      end
+
     end
 
     class UserLine < ::Treetop::Runtime::SyntaxNode
+      def name
+        self.elements[3].text_value
+      end
+
+      def groups
+        if self.elements[6].empty?
+          []
+        else
+          ;  #self.elements[6].text_value.slice!(' groups ').split(',')
+        end
+      end
+    end
+
+    class Password < Char
+    end
+
+    class PasswordType < ::Treetop::Runtime::SyntaxNode
     end
 
     class GroupLine < ::Treetop::Runtime::SyntaxNode
+      def name
+        self.elements[3].text_value
+      end
+
+      def users
+        self.elements[4].empty? ? [] : Hash[*self.elements[4].elements[3].text_value.split(',').collect{ |key| [key, nil]}.flatten]
+      end
     end
 
     class ConfigBlock < ::Treetop::Runtime::SyntaxNode
@@ -178,10 +211,6 @@ module HAProxy
     class GlobalSection < ::Treetop::Runtime::SyntaxNode
       include ConfigBlockContainer
     end
-
-    # class UserlistSection < ::Treetop::Runtime::SyntaxNode
-    #   include ConfigBlockContainer
-    # end
 
     class FrontendSection < ::Treetop::Runtime::SyntaxNode
       include ConfigBlockContainer
@@ -198,8 +227,56 @@ module HAProxy
     end
 
     class UserlistSection < ::Treetop::Runtime::SyntaxNode
+
+      GROUP = 0
+      USER = 1
+
       def name
         self.userlist_header.proxy_name
+      end
+
+      def users
+        self.elements[1].elements.select { |e| e.class == UserLine }
+      end
+
+      def group(group_name)
+        self.elements[1].elements.select { |e|
+            e.class == GroupLine && e.name == group_name
+        }.find { |value| !value.nil? }
+      end
+
+      def user(user_name)
+        self.elements[1].elements.select { |e|
+          e.class == UserLine && e.name == user_name
+        }.find { |value| !value.nil? }
+      end
+
+      def grouping
+        # (+) Iterate through the users, and test how many have groups attached by number and percentage
+        num_users_with_groups = self.userlist_block.users.select do |user|
+          user.groups.length > 0
+        end.length
+
+        # (+) Iterate through the groups, and test how many have users attached by number and percentage
+        num_groups_with_users = self.userlist_block.groups.select do |group|
+          group.users.length > 0
+        end.length
+
+        # (+) if we have an exact match of users and groups, go by percentage.
+        by_percentage = num_groups_with_users == num_users_with_groups
+
+        users_comparitor = by_percentage ? num_users_with_groups/self.users.count : num_users_with_groups
+        groups_comparitor = by_percentage ? num_groups_with_users/self.groups.count : num_groups_with_users
+
+        if users_comparitor == groups_comparitor
+          # If we still don't have a way to choose, sets groups in the group_line, instead of user_line
+          GROUP
+        elsif users_comparitor > groups_comparitor
+          USER
+        elsif users_comparitor < groups_comparitor
+          GROUP
+        end
+
       end
     end
 

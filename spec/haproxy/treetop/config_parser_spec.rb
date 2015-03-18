@@ -105,13 +105,13 @@ describe HAProxy::Treetop::ConfigParser do
       # This will be interpreted at parse time, and used at render time.
       case userlist_name
         when 'L1'
-          l.grouping.should == HAProxy::Userlist::GROUP
+          l.grouping.should == 0
         when 'L2'
-          l.grouping.should == HAProxy::Userlist::USER
+          l.grouping.should == 1
       end
 
-      l.group('G1').users.keys.should == ['tiger','scott']
-      l.group('G2').users.keys.should == ['xdb','scott']
+      l.group('G1').users.keys.should == ['tiger1','scott1']
+      l.group('G2').users.keys.should == ['xdb1','scott1']
 
       l.user('tiger').password_type.should == 'md5'
       l.user('tiger').password.should == '$6$k6y3o.eP$JlKBx(...)xHSwRv6J.C0/D7cV91'

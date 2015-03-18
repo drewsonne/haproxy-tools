@@ -4,7 +4,7 @@ module HAProxy::Treetop
 
   grammar Config
     rule configuration
-      (comment_line / blank_line  / global_section / defaults_section / listen_section / frontend_section / backend_section / userlist_section)* <ConfigurationFile>
+      (comment_line / blank_line / global_section / defaults_section / userlist_section / listen_section / frontend_section / backend_section)* <ConfigurationFile>
     end
 
     rule global_section
@@ -60,27 +60,23 @@ module HAProxy::Treetop
     end
 
     rule user_line
-        whitespace "user" whitespace role_keyword whitespace password_type whitespace password group_addendum? line_break <UserLine>
+        whitespace "user" whitespace role_keyword password_type whitespace group_addendum? comment_text? line_break  <UserLine>
     end
 
     rule group_line
-        whitespace "group" whitespace role_keyword user_addendum? line_break <GroupLine>
+        whitespace "group" whitespace role_keyword user_addendum? comment_text? line_break <GroupLine>
     end
 
     rule user_addendum
-       whitespace "users" whitespace usergroup_listing
+       whitespace "users" whitespace value
     end
 
     rule group_addendum
-       whitespace "groups" whitespace usergroup_listing
+       whitespace "groups" whitespace value
     end
 
     rule role_keyword
         [a-zA-Z0-9]+ <Char>
-    end
-
-    rule usergroup_listing
-        [a-zA-Z0-9\,]+ <Char>
     end
 
     rule config_block
@@ -159,16 +155,20 @@ module HAProxy::Treetop
       ![\n] . <Char>
     end
 
-    rule whitespace
-      [ \t]* <Whitespace>
+    rule word
+      ![ \n] .+ <Char>
     end
 
     rule password_type
-        ("password" / "insecure-password")
+        whitespace ("password" / "insecure-password") whitespace password <PasswordType>
     end
 
     rule password
-        [^\s]+ <Char>
+      [0-9a-zA-Z\.\$\/]+ <Password>
+    end
+
+    rule whitespace
+      [ \t]* <Whitespace>
     end
 
 # Valid Global Keywords (1.4)
